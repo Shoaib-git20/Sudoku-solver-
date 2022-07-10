@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+//declaring variables
+
+const int BoardSize=9;
+const int Cellsize=3;
+int board[BoardSize][BoardSize];
+int ans=0;
+
+//bit masking variables and technique
+int log2arr[10001];
+int takenCol[BoardSize];
+int TakenRow[BoardSize];
+int takenBoard[Cellsize][Cellsize];
+
+void make_choice(int ch, int row, int col){
+	board[row][col] = ch ;
+	takenBoard[(row/Cellsize)][(col/Cellsize)] |= (1<<ch);
+	TakenRow[row] |= (1<<ch);
+	takenCol[col] |= (1<<ch);
+}
+
+void remove_choice(int ch, int row, int col){
+	board[row][col] = 0 ;
+	takenBoard[(row/Cellsize)][(col/Cellsize)] ^= (1<<ch);
+	TakenRow[row] ^= (1<<ch);
+	takenCol[col] ^= (1<<ch);
+}
+
+int get_choice(int row, int col)
+{
+	int taken = TakenRow[row] | takenCol[col] | takenBoard[(row/Cellsize)][(col/Cellsize)] ;
+	int nottaken = ((1<<(BoardSize+1))-1)^taken;
+	if(nottaken&1)nottaken^=1;
+	return nottaken;
+}
+
+void rec(int row, int col){
+	if(col==BoardSize){
+		rec(row+1,0);
+		return ;
+	}
+
+	//base case
+	if(row==BoardSize){
+		ans++;
+
+		for (int i = 0; i < BoardSize; ++i)
+		{
+			for (int j = 0; j < BoardSize; ++j)
+			{
+				cout<<board[i][j]<<" ";
+			}
+			cout<<"\n" ;
+		}
+		return ;
+	}
+
+	if(board[row][col]==0){
+		// we need to fill
+		int chmask = get_choice(row, col);
+
+		while(chmask)
+		{
+			int last1=chmask^(chmask&(chmask-1)) ;
+			int last1pos=log2arr[last1] ;
+
+			make_choice(last1pos,row,col);
+			rec(row,col+1);
+
+			remove_choice(last1pos,row, col);
+			chmask=chmask&(chmask-1);
+		}
+
+	}else{
+		rec(row,col+1);
+	}
+}
+
+
+
+void solve()
+{
+	//take input and assign bit masking to check variable
+	for (int i = 0; i <=9; ++i)
+	{
+		log2arr[1<<i]=i ;	}
+		
+	for (int i = 0; i < BoardSize; ++i)
+	{
+		for (int j = 0; j < BoardSize; ++j)
+		{
+			int ch;
+			cin>>ch;
+			make_choice(ch,i,j);
+		}
+	
+	}
+
+	rec(0,0);
+}
+
+int main()
+{
+	ios::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+	solve();
+	return 0 ;
+}
